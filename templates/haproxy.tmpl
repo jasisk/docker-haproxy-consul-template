@@ -1,0 +1,20 @@
+global
+        maxconn 2048
+defaults
+        mode http
+        option forwardfor
+        timeout connect    5000ms
+        timeout client    30000ms
+        timeout server   120000ms
+frontend http-in
+        bind *:8080
+        http-response add-header X-Registry %si
+        acl write_method method POST PUT DELETE MOVE COPY
+        use_backend couchdb_write if write_method
+        default_backend couchdb_read
+backend couchdb_read
+        balance roundrobin{{range service "registry"}}
+        server {{.Node}} {{.Address}}:{{.Port}}{{end}}
+backend couchdb_write
+        option allbackups{{with $d := key "service/haproxy/couchdb_write/registries" | parseJSON}}{{range $i, $e := $d}}
+        server backup.{{$i}} {{$e}}{{end}}{{end}}
