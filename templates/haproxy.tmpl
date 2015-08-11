@@ -9,12 +9,7 @@ defaults
 frontend http-in
         bind *:8080
         http-response add-header X-Upstream %si
-        acl write_method method POST PUT DELETE MOVE COPY
-        use_backend couchdb_write if write_method
-        default_backend couchdb_read
-backend couchdb_read
-        balance roundrobin{{range service "registry"}}
-        server {{.Node}} {{.Address}}:{{.Port}}{{end}}
-backend couchdb_write
-        option allbackups{{with $d := key "service/haproxy/couchdb_write/registries" | parseJSON}}{{range $i, $e := $d}}
-        server backup.{{$i}} {{$e}}{{end}}{{end}}
+        default_backend kappa
+backend kappa
+        balance roundrobin{{range service "kappa"}}
+        server {{.Node}}.{{.Port}} {{.Address}}:{{.Port}}{{end}}
