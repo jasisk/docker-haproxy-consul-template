@@ -8,7 +8,7 @@ defaults
         timeout server   120000ms
 frontend http-in
         bind *:8080
-        http-response add-header X-Registry %si
+        http-response add-header X-Upstream %si
         acl write_method method POST PUT DELETE MOVE COPY
         use_backend couchdb_write if write_method
         default_backend couchdb_read
